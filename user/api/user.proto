@@ -30,7 +30,7 @@ message CreateUserRequest {
 
 message ListUsersRequest {
     uint32 page_size = 1;
-    repeated string country = 4;
+    repeated string countries = 4;
 }
 
 message ListUsersResponse {

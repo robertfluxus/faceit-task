@@ -4,10 +4,11 @@ import (
 	"context"
 
 	userpb "github.com/robertfluxus/faceit-task/user/api"
+	converters "github.com/robertfluxus/faceit-task/user/pkg/grpc/converters"
 )
 
 // CreateUser creates a new user
-func (s *ServiceHandler) CreateUser(ctx context.Context, req *userpb.CreateUserRequest) (userpb.User, error) {
+func (s *ServiceHandler) CreateUser(ctx context.Context, req *userpb.CreateUserRequest) (*userpb.User, error) {
 
 	err := validateCreateUserRequest(req)
 	if err != nil {
@@ -16,7 +17,7 @@ func (s *ServiceHandler) CreateUser(ctx context.Context, req *userpb.CreateUserR
 
 	internalUser := converters.ToInternalUser(req.User)
 
-	user, err := s.userService.CreateUser(ctx, user, req.RequestId)
+	user, err := s.userService.CreateUser(ctx, internalUser, req.RequestId)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +60,7 @@ func validateCreateUserRequest(req *userpb.CreateUserRequest) error {
 	return nil
 }
 
-func (s *ServiceHandler) GetUser(ctx context.Context, req *userpb.GetUserRequest) (userpb.User, error) {
+func (s *ServiceHandler) GetUser(ctx context.Context, req *userpb.GetUserRequest) (*userpb.User, error) {
 	err := validateGetUserRequest(req)
 	if err != nil {
 		return nil, err
@@ -80,15 +81,15 @@ func validateGetUserRequest(req *userpb.GetUserRequest) error {
 	return nil
 }
 
-func (s *ServiceHandler) ListUsers(ctx context.Context, req *userpb.ListUsersRequest) (userpb.ListUsersResponse, error) {
+func (s *ServiceHandler) ListUsers(ctx context.Context, req *userpb.ListUsersRequest) (*userpb.ListUsersResponse, error) {
 	err := validateListUsersRequest(req)
 	if err != nil {
 		return nil, err
 	}
 
-	users, err := s.userService.ListUsers(ctx, req.Country)
+	users, err := s.userService.ListUsers(ctx, req.Countries)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	return &userpb.ListUsersResponse{
@@ -97,8 +98,10 @@ func (s *ServiceHandler) ListUsers(ctx context.Context, req *userpb.ListUsersReq
 }
 
 func validateListUsersRequest(req *userpb.ListUsersRequest) error {
-	if req.Country == "" {
-		return ErrEmptyCountry
+	for _, country := range req.Countries {
+		if country == "" {
+			return ErrEmptyCountry
+		}
 	}
 	return nil
 }
