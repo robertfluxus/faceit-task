@@ -28,7 +28,7 @@ func New(db *sql.DB) *DB {
 }
 
 const (
-	UserTableName = "public.users"
+	UserTableName = "faceit.users"
 )
 
 func WithTransaction(db *sql.DB, fn TxFn) error {

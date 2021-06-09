@@ -33,6 +33,10 @@ func (u *UserService) UpdateUser(ctx context.Context, user *usermodel.User, upda
 	return nil, nil
 }
 
-func (u *UserService) GetUser(ctx context.Context, userId string) (*usermodel.User, error) {
-	return nil, nil
+func (u *UserService) GetUser(ctx context.Context, userID string) (*usermodel.User, error) {
+	user, err := u.repository.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }

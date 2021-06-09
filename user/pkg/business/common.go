@@ -10,7 +10,7 @@ import (
 type UserRepository interface {
 	InsertUser(ctx context.Context, user *user.User, requestID string) (*user.User, error)
 	QueryUsers()
-	GetUserByID()
+	GetUserByID(ctx context.Context, userID string) (*user.User, error)
 	UpdateUser()
 }
 
