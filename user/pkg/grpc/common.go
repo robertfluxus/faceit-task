@@ -16,3 +16,9 @@ type UserService interface {
 type ServiceHandler struct {
 	userService UserService
 }
+
+func NewUserServiceHandler(userService UserService) *ServiceHandler {
+	return &ServiceHandler{
+		userService: userService,
+	}
+}

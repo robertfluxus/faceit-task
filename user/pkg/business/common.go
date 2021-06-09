@@ -1,20 +1,33 @@
 package business
 
-import ()
+import (
+	"context"
+	"database/sql"
+
+	"github.com/robertfluxus/faceit-task/user/pkg/domain"
+
+	"github.com/jmoiron/sqlx"
+)
 
 type UserRepository interface {
-	InsertUser()
+	InsertUser(ctx context.Context, user *user.User, requestID string) (*user.User, error)
 	QueryUsers()
-	GetUser()
+	GetUserByID()
 	UpdateUser()
 }
 
 type UserService struct {
-	repository UserRepository
+	repository    UserRepository
+	transactioner Transactioner
 }
 
-func NewUserService(repository UserRepository) *UserService {
+func NewUserService(repository UserRepository, transactioner Transactioner) *UserService {
 	return &UserService{
-		repository: repository,
+		repository:    repository,
+		transactioner: transactioner,
 	}
+}
+
+type Transactioner interface {
+	WithTransaction(fn TxFn) error
 }
