@@ -2,16 +2,11 @@ package business
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	"github.com/gofrs/uuid"
 	usermodel "github.com/robertfluxus/faceit-task/user/pkg/domain"
-
-	"github.com/jmoiron/sqlx"
 )
-
-var sqlTransactionOptions = &sql.TxOptions{Isolation: sql.LevelSerializable}
 
 func (u *UserService) CreateUser(ctx context.Context, user *usermodel.User, requestId string) (*usermodel.User, error) {
 	if user.ID == "" {
@@ -23,13 +18,7 @@ func (u *UserService) CreateUser(ctx context.Context, user *usermodel.User, requ
 	}
 
 	var insertedUser *usermodel.User
-	_, err := u.transactioner.InTransactionCtx(ctx, func(tx *sqlx.Tx) (result sql.Result, err error) {
-		insertedUser, err = u.repository.InsertUser(ctx, user, requestId)
-		if err != nil {
-			return nil, err
-		}
-		return nil, nil
-	}, sqlTransactionOptions)
+	insertedUser, err := u.repository.InsertUser(ctx, user, requestId)
 	if err != nil {
 		return nil, err
 	}

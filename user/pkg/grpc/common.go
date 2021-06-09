@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 
+	userpb "github.com/robertfluxus/faceit-task/user/api"
 	"github.com/robertfluxus/faceit-task/user/pkg/domain"
 )
 
@@ -14,10 +15,11 @@ type UserService interface {
 }
 
 type ServiceHandler struct {
+	userpb.UnimplementedUserServiceServer
 	userService UserService
 }
 
-func NewUserServiceHandler(userService UserService) *ServiceHandler {
+func NewUserServiceHandler(userService UserService) userpb.UserServiceServer {
 	return &ServiceHandler{
 		userService: userService,
 	}

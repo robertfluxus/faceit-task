@@ -5,8 +5,6 @@ import (
 	"database/sql"
 
 	"github.com/robertfluxus/faceit-task/user/pkg/domain"
-
-	"github.com/jmoiron/sqlx"
 )
 
 type UserRepository interface {
@@ -17,17 +15,13 @@ type UserRepository interface {
 }
 
 type UserService struct {
-	repository    UserRepository
-	transactioner Transactioner
+	repository UserRepository
+	db         *sql.DB
 }
 
-func NewUserService(repository UserRepository, transactioner Transactioner) *UserService {
+func NewUserService(repository UserRepository, db *sql.DB) *UserService {
 	return &UserService{
-		repository:    repository,
-		transactioner: transactioner,
+		repository: repository,
+		db:         db,
 	}
-}
-
-type Transactioner interface {
-	WithTransaction(fn TxFn) error
 }

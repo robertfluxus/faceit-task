@@ -13,6 +13,7 @@ import (
 	usergrpc "github.com/robertfluxus/faceit-task/user/pkg/grpc"
 
 	"github.com/jessevdk/go-flags"
+	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 )
 
@@ -33,14 +34,26 @@ func main() {
 		log.Fatal("failed to listen: %w", err)
 	}
 
-	connURL := "test"
+	connURL := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		os.Getenv("HOST"),
+		os.Getenv("PORT"),
+		os.Getenv("USER"),
+		os.Getenv("PASSWORD"),
+		os.Getenv("DBNAME"),
+	)
+
 	db, err := sql.Open("postgres", connURL)
+	if err != nil {
+		log.Fatal("Failed connecting to the database")
+	}
+	defer db.Close()
+
 	userRespository := userdb.New(db)
 
 	userService := userbusiness.NewUserService(userRespository, db)
 
 	grpcServer := grpc.NewServer()
-	userpb.RegisterUserServiceServer(grpcServer, usergrpc.NewUserService(userService))
+	userpb.RegisterUserServiceServer(grpcServer, usergrpc.NewUserServiceHandler(userService))
 
 	log.Printf("Initializing gRPC server on port %d", opts.Port)
 	grpcServer.Serve(lis)

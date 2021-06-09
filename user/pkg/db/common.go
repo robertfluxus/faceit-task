@@ -1,39 +1,40 @@
 package db
 
 import (
-	"context"
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
 )
 
-type Connection interface {
-	QueryContext(context.Context, string, ...interface{}) (*sql.Rows, error)
+type Transaction interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
 	sq.BaseRunner
 }
 
-type TxFn func(Connection) error
+type TxFn func(Transaction) error
 
 var sqBuilder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 type DB struct {
-	conn Connection
+	db *sql.DB
 }
 
-func New(conn Connection) *DB {
+func New(db *sql.DB) *DB {
 	return &DB{
-		conn: conn,
+		db: db,
 	}
 }
 
 const (
-	UserTableName = "users"
+	UserTableName = "public.users"
 )
 
-func (db *DB) WithTransaction(fn TxFn) error {
-	x, err := db.Begin()
+func WithTransaction(db *sql.DB, fn TxFn) error {
+	tx, err := db.Begin()
 	if err != nil {
-		return
+		return err
 	}
 
 	defer func() {

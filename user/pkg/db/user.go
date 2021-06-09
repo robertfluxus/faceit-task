@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	dbmodel "github.com/robertfluxus/faceit-task/user/pkg/db/model"
@@ -23,21 +24,28 @@ func (db *DB) InsertUser(ctx context.Context, user *user.User, requestID string)
 }
 
 func (db *DB) insertUserRecord(ctx context.Context, user *dbmodel.UserRecord, requestID string) ([]*dbmodel.UserRecord, error) {
-	res, err := sqBuilder.Insert(UserTableName).
-		Columns("id", "request_id", "first_name", "last_name", "nickname", "password", "email", "country").
-		Values(
-			user.ID,
-			requestID,
-			user.FirstName,
-			user.LastName,
-			user.Nickname,
-			user.Password,
-			user.Email,
-			user.Country,
-		).
-		Suffix(`RETURNIG id, first_name, last_name, nickname, password, email, country`).
-		RunWith(db.conn).
-		QueryContext(ctx)
+	var res *sql.Rows
+	err := WithTransaction(db.db, func(tx Transaction) (err error) {
+		res, err = sqBuilder.Insert(UserTableName).
+			Columns("id", "request_id", "first_name", "last_name", "nickname", "password", "email", "country").
+			Values(
+				user.ID,
+				requestID,
+				user.FirstName,
+				user.LastName,
+				user.Nickname,
+				user.Password,
+				user.Email,
+				user.Country,
+			).
+			Suffix(`RETURNING id, first_name, last_name, nickname, password, email, country`).
+			RunWith(db.db).
+			QueryContext(ctx)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
