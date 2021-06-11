@@ -9,5 +9,6 @@ ENV PASSWORD=secret
 ENV DBNAME=faceit
 
 EXPOSE 7000
+EXPOSE 7001
 
-CMD [ "/faceittask", "--port", "7000"]
+CMD [ "/faceittask", "--port", "7000", "--gateway_port", "7001"]

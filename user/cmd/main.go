@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"os"
 
 	userpb "github.com/robertfluxus/faceit-task/user/api"
@@ -13,13 +14,15 @@ import (
 	userdb "github.com/robertfluxus/faceit-task/user/pkg/db"
 	usergrpc "github.com/robertfluxus/faceit-task/user/pkg/grpc"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/jessevdk/go-flags"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 )
 
 type Opts struct {
-	Port int `short:"p" long:"port"`
+	Port        string `short:"p" long:"port"`
+	GatewayPort string `short:"g" long:"gateway_port"`
 }
 
 var opts Opts
@@ -30,7 +33,7 @@ func main() {
 		log.Fatalf("failed to parse args: %w", err)
 	}
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", opts.Port))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", opts.Port))
 	if err != nil {
 		log.Fatal("failed to listen: %w", err)
 	}
@@ -66,6 +69,29 @@ func main() {
 	userpb.RegisterUserServiceServer(grpcServer, usergrpc.NewUserServiceHandler(userService))
 
 	log.Printf("Initializing gRPC server on port %d", opts.Port)
-	grpcServer.Serve(lis)
+	go func() {
+		log.Fatalln(grpcServer.Serve(lis))
+	}()
 
+	conn, err := grpc.DialContext(
+		context.Background(),
+		fmt.Sprintf("0.0.0.0:%s", opts.Port),
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		log.Fatalf("Failed to dial server: %w", err)
+	}
+
+	gatewayMux := runtime.NewServeMux()
+	err = userpb.RegisterUserServiceHandler(context.Background(), gatewayMux, conn)
+	if err != nil {
+		log.Fatalf("Failed to register gateway: %w", err)
+	}
+
+	gatewayServer := &http.Server{
+		Addr:    ":7001",
+		Handler: gatewayMux,
+	}
+	log.Printf("Serving gateway on port %s", opts.GatewayPort)
+	log.Fatalln(gatewayServer.ListenAndServe())
 }

@@ -2,8 +2,10 @@
 
 protogen:
 	cd user/api
-	protoc --go_out=. --go_opt=paths=source_relative \
+	protoc \
+		--go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		--grpc-gateway_out=. --grpc-gateway_opt paths=source_relative \
 		user.proto
 
 postgres:
@@ -34,13 +36,18 @@ compose:
 	docker-compose up --build --force-recreate -d
 	docker-compose logs -f -t
 
+removecompose:
+	docker-compose down
 
 rabbit:
 	docker run -it -d --hostname rabbit --name rabbit --rm -ti --net="host" rabbitmq:3.8-management 
 
+removerabbit:
+	docker stop rabbit
+
+grpcox:
+	docker run --net=host -p 6969:6969 -v $(pwd)/logs/log:/log -d gusaul/grpcox 
+
 mockuserservice:
 	mockgen -destination user/pkg/grpc/mocks/user_service_mock.go \
 		github.com/robertfluxus/faceit-task/user/pkg/grpc UserService
-
-
-.PHONY: protogen

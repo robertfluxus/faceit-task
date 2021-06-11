@@ -1,16 +1,35 @@
 syntax = "proto3";
 
 import "google/protobuf/field_mask.proto";
+import "google/api/annotations.proto";
 
 option go_package = "github.com/robertfluxus/faceit-task";
 
 package user;
 
 service UserService {
-    rpc CreateUser(CreateUserRequest) returns (User) {};
-    rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {};
-    rpc UpdateUser(UpdateUserRequest) returns (User) {};
-    rpc GetUser(GetUserRequest) returns (User) {};
+    rpc CreateUser(CreateUserRequest) returns (User) {
+        option (google.api.http) = {
+            post: "/v1/user"
+            body: "*"
+        };
+    };
+    rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
+        option (google.api.http) = {
+            get: "/v1/user"
+        };
+    };
+    rpc UpdateUser(UpdateUserRequest) returns (User) {
+        option (google.api.http) = {
+            put: "/v1/user/{user.id}"
+            body: "*"
+        };
+    };
+    rpc GetUser(GetUserRequest) returns (User) {
+        option (google.api.http) = {
+            get: "/v1/user/{user_id}"
+        };
+    };
 }
 
 message User {

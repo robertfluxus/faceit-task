@@ -17,6 +17,7 @@ services:
             dockerfile: user/k8s/Dockerfile.faceit
         ports:
             - "7000:7000"
+            - "7001:7001"
         depends_on:
             - postgres  
             - rabbitmq
