@@ -1,2 +1,13 @@
 2021/06/09 22:35:14 connection.go:63: Connection localhost:7000 expired and closed
 2021/06/09 22:50:50 connection.go:63: Connection localhost:7000 expired and closed
+2021/06/10 21:44:26 connection.go:63: Connection 127.0.0.1:7000 expired and closed
+2021/06/10 21:45:29 connection.go:63: Connection localhost:7000 expired and closed
+2021/06/10 22:41:05 connection.go:63: Connection localhost:7000 expired and closed
+2021/06/11 08:01:39 connection.go:63: Connection localhost:7000 expired and closed
+2021/06/11 08:13:09 connection.go:63: Connection localhost:7000 expired and closed
+2021/06/11 09:10:12 connection.go:63: Connection localhost:7000 expired and closed
+2021/06/11 10:44:42 connection.go:63: Connection localhost:7000 expired and closed
+2021/06/11 11:07:45 connection.go:63: Connection localhost:7000 expired and closed
+2021/06/11 11:41:45 connection.go:63: Connection localhost:7000 expired and closed
+2021/06/11 16:39:24 grpcox.go:43: listen tcp 0.0.0.0:6969: bind: address already in use
+2021/06/11 16:50:03 connection.go:63: Connection localhost:7000 expired and closed

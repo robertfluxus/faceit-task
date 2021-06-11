@@ -25,4 +25,22 @@ removepostgres:
 	docker stop postgres12
 	docker rm postgres12
 
+buildfaceit:
+	cd user/cmd
+	CGO_ENABLED=0 GOOS=linux go build -o ../k8s/faceittask
+
+compose:
+	cd user/k8s
+	docker-compose up --build --force-recreate -d
+	docker-compose logs -f -t
+
+
+rabbit:
+	docker run -it -d --hostname rabbit --name rabbit --rm -ti --net="host" rabbitmq:3.8-management 
+
+mockuserservice:
+	mockgen -destination user/pkg/grpc/mocks/user_service_mock.go \
+		github.com/robertfluxus/faceit-task/user/pkg/grpc UserService
+
+
 .PHONY: protogen

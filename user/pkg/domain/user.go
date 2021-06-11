@@ -9,3 +9,9 @@ type User struct {
 	Email     string
 	Country   string
 }
+
+const (
+	FieldUnknown  = "unknown"
+	FieldCountry  = "country"
+	FieldNickname = "nickname"
+)

@@ -1,0 +1,12 @@
+FROM postgres:latest
+
+ENV POSTGRES_USER=root
+ENV POSTGRES_PASSWORD=secret
+ENV POSTGRES_DB=faceit
+ENV POSTGRES_HOST=0.0.0.0
+ENV POSTGRES_PORT=5432
+
+COPY user/pkg/db/migration/000001_init_schema.up.sql /docker-entrypoint-initdb.d/
+
+EXPOSE 5432
+

@@ -11,17 +11,19 @@ type UserRepository interface {
 	InsertUser(ctx context.Context, user *user.User, requestID string) (*user.User, error)
 	QueryUsers()
 	GetUserByID(ctx context.Context, userID string) (*user.User, error)
-	UpdateUser()
+	UpdateUser(ctx context.Context, user *user.User) (updatedUser *user.User, err error)
 }
 
 type UserService struct {
 	repository UserRepository
 	db         *sql.DB
+	rabbit     *RabbitMQ
 }
 
-func NewUserService(repository UserRepository, db *sql.DB) *UserService {
+func NewUserService(repository UserRepository, db *sql.DB, rabbit *RabbitMQ) *UserService {
 	return &UserService{
 		repository: repository,
 		db:         db,
+		rabbit:     rabbit,
 	}
 }

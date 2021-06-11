@@ -36,6 +36,8 @@ func (db *DB) InsertUser(ctx context.Context, user *user.User, requestID string)
 
 func (db *DB) insertUserRecord(ctx context.Context, user *dbmodel.UserRecord, requestID string) ([]*dbmodel.UserRecord, error) {
 	var res *sql.Rows
+	var userRecords dbmodel.UserRecords
+
 	err := WithTransaction(db.db, func(tx Transaction) (err error) {
 		res, err = sqBuilder.Insert(UserTableName).
 			Columns("id", "request_id", "first_name", "last_name", "nickname", "password", "email", "country").
@@ -50,19 +52,17 @@ func (db *DB) insertUserRecord(ctx context.Context, user *dbmodel.UserRecord, re
 				user.Country,
 			).
 			Suffix(`RETURNING id, first_name, last_name, nickname, password, email, country`).
-			RunWith(db.db).
+			RunWith(tx).
 			QueryContext(ctx)
+		if err != nil {
+			return err
+		}
+		err = sqlx.StructScan(res, &userRecords)
 		if err != nil {
 			return err
 		}
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	var userRecords dbmodel.UserRecords
-	err = sqlx.StructScan(res, &userRecords)
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +73,42 @@ func (db *DB) QueryUsers() {
 	return
 }
 
-func (db *DB) UpdateUser() {
-	return
+func (db *DB) UpdateUser(ctx context.Context, user *user.User) (updatedUser *user.User, err error) {
+
+	userUpdateRecord := dbmodel.UserRecordFromDomain(user)
+	userRecords, err := db.updateUser(ctx, userUpdateRecord)
+	if err != nil {
+		return nil, err
+	}
+
+	return userRecords[0].ToDomain(), nil
+}
+
+func (db *DB) updateUser(ctx context.Context, user *dbmodel.UserRecord) ([]*dbmodel.UserRecord, error) {
+	var res *sql.Rows
+	var userRecords dbmodel.UserRecords
+
+	err := WithTransaction(db.db, func(tx Transaction) (err error) {
+		res, err = sqBuilder.Update(UserTableName).
+			Set("country", user.Country).
+			Set("nickname", user.Nickname).
+			Where(sq.Eq{"id": user.ID}).
+			Suffix(`RETURNING id, first_name, last_name, nickname, password, email, country`).
+			RunWith(tx).
+			QueryContext(ctx)
+		if err != nil {
+			return err
+		}
+		err = sqlx.StructScan(res, &userRecords)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return userRecords, nil
 }
 
 func (db *DB) GetUserByID(ctx context.Context, userID string) (*user.User, error) {

@@ -1,13 +1,14 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"log"
 	"net"
 	"os"
 
 	userpb "github.com/robertfluxus/faceit-task/user/api"
+	common "github.com/robertfluxus/faceit-task/user/common"
 	userbusiness "github.com/robertfluxus/faceit-task/user/pkg/business"
 	userdb "github.com/robertfluxus/faceit-task/user/pkg/db"
 	usergrpc "github.com/robertfluxus/faceit-task/user/pkg/grpc"
@@ -42,15 +43,24 @@ func main() {
 		os.Getenv("DBNAME"),
 	)
 
-	db, err := sql.Open("postgres", connURL)
+	db, err := common.ConnectPostgress(context.Background(), common.NewDefaultConnectionOptions(connURL))
 	if err != nil {
-		log.Fatal("Failed connecting to the database")
+		log.Fatalf("Failed connecting to the database: %w", err)
 	}
 	defer db.Close()
-
 	userRespository := userdb.New(db)
 
-	userService := userbusiness.NewUserService(userRespository, db)
+	rabbitConnURL := "amqp://rabbitmq:rabbitmq@rabbithost:5672/"
+	rabbitConn, err := common.ConnectRabbitMQ(context.Background(), common.NewDefaultConnectionOptions(rabbitConnURL))
+	if err != nil {
+		log.Printf("Failed to connect to rabbit mq: %w", err)
+	}
+	rabbit, err := userbusiness.NewRabbitMQ(rabbitConn)
+	if err != nil {
+		log.Printf("Failed to create channel: %w", err)
+	}
+	rabbit.CreateQueue("USER_UPDATES")
+	userService := userbusiness.NewUserService(userRespository, db, rabbit)
 
 	grpcServer := grpc.NewServer()
 	userpb.RegisterUserServiceServer(grpcServer, usergrpc.NewUserServiceHandler(userService))

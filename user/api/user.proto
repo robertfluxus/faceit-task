@@ -29,8 +29,9 @@ message CreateUserRequest {
 }
 
 message ListUsersRequest {
-    uint32 page_size = 1;
-    repeated string countries = 4;
+    repeated string countries = 1;
+    uint32 page_size = 2;
+    string next_page_token = 3;
 }
 
 message ListUsersResponse {
@@ -44,6 +45,6 @@ message UpdateUserRequest {
 }
 
 message GetUserRequest {
-    string user_id = 2;
+    string user_id = 1;
 }
 

@@ -1,0 +1,33 @@
+version: "3.9"
+services:
+    postgres:
+        image: postgres:latest
+        container_name: composepostgres
+        restart: always
+        env_file: 
+            - user/k8s/database.env
+        volumes:
+            - ./user/pkg/db/migration/000001_init_schema.up.sql:/docker-entrypoint-initdb.d/000001_init_schema.up.sql
+        ports:
+            - "5432:5432"
+    faceit:
+        container_name: faceit
+        build:
+            context: .
+            dockerfile: user/k8s/Dockerfile.faceit
+        ports:
+            - "7000:7000"
+        depends_on:
+            - postgres  
+            - rabbitmq
+    rabbitmq:
+        image: rabbitmq:3.8-management
+        container_name: rabbit
+        hostname: rabbithost
+        environment: 
+            RABBITMQ_DEFAULT_USER: "rabbitmq"
+            RABBITMQ_DEFAULT_PASS: "rabbitmq"
+            RABBITMQ_DEFAULT_VHOST: "/"
+        ports:
+            - "5672:5672"
+            - "15672:15672" 
